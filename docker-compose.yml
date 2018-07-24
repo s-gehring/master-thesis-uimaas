@@ -1,0 +1,37 @@
+version: '2.3'
+services:
+  broker:
+    image: srv-builder.fkie.fraunhofer.de:18006/gehring-master-uimaas:0.0.1-SNAPSHOT
+    build: .
+    ports:
+    - 40003:61616
+    - 40002:8080
+    command:
+    - "startBroker.sh"
+    healthcheck:
+      test: ["CMD", "/healthcheckBroker.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+  submitter:
+    image: srv-builder.fkie.fraunhofer.de:18006/gehring-master-uimaas:0.0.1-SNAPSHOT
+    build: .
+    command:
+    - "deployAsyncService.sh"
+    - "/uima-as/descriptors/deployment-descriptor.xml"
+    volumes:
+    - "$PWD/descriptors:/uima-as/descriptors"
+    - "$PWD/jars:/uima-as/classpath"
+    depends_on:
+      broker:
+        condition: service_healthy
+      descriptor-provider:
+        condition: service_healthy
+  document-provider:
+    image: httpd:alpine
+    ports:
+    - 40001:80
+    volumes:
+    - "$PWD/documents:/usr/local/apache2/htdocs"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "-O", "-", "-T", "1", "localhost"]
