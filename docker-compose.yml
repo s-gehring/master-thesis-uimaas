@@ -13,6 +13,15 @@ services:
       interval: 10s
       timeout: 5s
       retries: 2
+  service:
+    image: srv-builder.fkie.fraunhofer.de:18006/gehring-master-uimaas:0.0.1-SNAPSHOT
+    build: .
+    command:
+    - "java"
+    - "-jar"
+    - "/uima-as/jars/shared-uima-as-0.0.1-SNAPSHOT.jar"
+    volumes:
+    - "$PWD/jars:/uima-as/jars"
   submitter:
     image: srv-builder.fkie.fraunhofer.de:18006/gehring-master-uimaas:0.0.1-SNAPSHOT
     build: .
@@ -25,8 +34,8 @@ services:
     depends_on:
       broker:
         condition: service_healthy
-      descriptor-provider:
-        condition: service_healthy
+      service:
+        condition: service_started
   document-provider:
     image: httpd:alpine
     ports:
