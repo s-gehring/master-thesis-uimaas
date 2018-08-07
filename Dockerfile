@@ -16,5 +16,4 @@ EXPOSE 61616
 EXPOSE 8080
 
 COPY healthcheckBroker.sh /healthcheckBroker.sh
-COPY downloadAndDeployAsync.sh /downloadAndDeployAsync.sh
 #COPY entryscript.sh /entryscript.sh
