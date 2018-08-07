@@ -22,14 +22,27 @@ services:
     - "/uima-as/jars/shared-uima-as-0.0.1-SNAPSHOT.jar"
     volumes:
     - "$PWD/jars:/uima-as/jars"
+    #- "${SUP_LOG_FILES:-~/logs/}:"
+    cpus: ${CORES_PER_MACHINE:-1}
+    mem_limit: ${MEMORY_PER_MACHINE_IN_GB:-5}G
   submitter:
     image: srv-builder.fkie.fraunhofer.de:18006/gehring-master-uimaas:0.0.1-SNAPSHOT
     build: .
     command:
-    - "deployAsyncService.sh"
-    - "/uima-as/descriptors/deployment-descriptor.xml"
+    - "java"
+    - "-jar"
+    - "/uima-as/classpath/shared-uima-as-0.0.1-SNAPSHOT.jar"
+    - "--client"
+    - "-d"
+    - "${SUP_GUTENBERG_RATIO:-1.0}"
+    - "--minSize"
+    - "${FILESIZE_MIN:-0}"
+    - "--maxSize"
+    - "${FILESIZE_MAX:--1}"
+    - "--pipelineId"
+    - "${SUP_PIPELINE_ID:-0}"
     volumes:
-    - "$PWD/descriptors:/uima-as/descriptors"
+    #- "$PWD/descriptors:/uima-as/descriptors"
     - "$PWD/jars:/uima-as/classpath"
     depends_on:
       broker:
@@ -41,6 +54,6 @@ services:
     ports:
     - 40001:80
     volumes:
-    - "$PWD/documents:/usr/local/apache2/htdocs"
+    - "${DOCUMENT_DIR:-~/documents}:/usr/local/apache2/htdocs"
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "-O", "-", "-T", "1", "localhost"]
